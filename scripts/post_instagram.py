@@ -27,8 +27,14 @@ media_payload = {
 }
 
 media_response = requests.post(media_url, data=media_payload)
-media_response.raise_for_status()
+
+if media_response.status_code != 200:
+    print("Erro ao criar mídia:")
+    print(media_response.text)
+    media_response.raise_for_status()
+
 creation_id = media_response.json()["id"]
+
 
 # 2. Publicar
 publish_url = f"https://graph.facebook.com/v24.0/{IG_USER_ID}/media_publish"
