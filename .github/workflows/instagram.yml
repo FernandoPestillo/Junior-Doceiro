@@ -5,8 +5,8 @@ permissions:
 
 on:
   schedule:
-    - cron: "0 11 * * *" # 14:00 UTC (08:00 Brasil)
-  workflow_dispatch: # permite rodar manualmente
+    - cron: 5 12 * * *
+  workflow_dispatch:
 
 jobs:
   instagram:
