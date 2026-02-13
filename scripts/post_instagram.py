@@ -1,5 +1,6 @@
 import os
 import json
+import time
 import requests
 import subprocess
 
@@ -9,7 +10,7 @@ IMAGE_URL = os.getenv("IMAGE_URL")
 
 COUNTER_FILE = "post_counter.json"
 
-# 1. Ler contador atual
+# 1. Ler contador
 with open(COUNTER_FILE, "r") as f:
     data = json.load(f)
 
@@ -36,8 +37,31 @@ if media_response.status_code != 200:
     media_response.raise_for_status()
 
 creation_id = media_response.json()["id"]
+print("Container criado:", creation_id)
 
-# 3. Publicar
+# 3. Aguardar processamento
+status_url = f"https://graph.facebook.com/v24.0/{creation_id}"
+status_params = {
+    "fields": "status_code",
+    "access_token": ACCESS_TOKEN
+}
+
+for attempt in range(1, 11):
+    status_response = requests.get(status_url, params=status_params)
+    status = status_response.json().get("status_code")
+
+    print(f"Tentativa {attempt} - status da mídia: {status}")
+
+    if status == "FINISHED":
+        break
+    if status == "ERROR":
+        raise RuntimeError("Erro no processamento da mídia")
+
+    time.sleep(3)
+else:
+    raise TimeoutError("Timeout aguardando a mídia ficar pronta")
+
+# 4. Publicar
 publish_url = f"https://graph.facebook.com/v24.0/{IG_USER_ID}/media_publish"
 publish_payload = {
     "creation_id": creation_id,
@@ -45,24 +69,31 @@ publish_payload = {
 }
 
 publish_response = requests.post(publish_url, data=publish_payload)
+
 if publish_response.status_code != 200:
     print("Erro ao publicar mídia:")
     print(publish_response.text)
     publish_response.raise_for_status()
 
-# 4. Atualizar contador
+# 5. Atualizar contador
 data["count"] = current_count
 with open(COUNTER_FILE, "w") as f:
     json.dump(data, f, indent=2)
 
-# 5. Commit automático do contador
+# 6. Commit automático
 subprocess.run(["git", "config", "user.name", "github-actions"], check=True)
 subprocess.run(["git", "config", "user.email", "actions@github.com"], check=True)
 subprocess.run(["git", "add", COUNTER_FILE], check=True)
-subprocess.run(
+
+commit = subprocess.run(
     ["git", "commit", "-m", f"chore: contador Instagram dia {current_count}"],
-    check=True
+    capture_output=True,
+    text=True
 )
-subprocess.run(["git", "push"], check=True)
+
+if commit.returncode == 0:
+    subprocess.run(["git", "push"], check=True)
+else:
+    print("Nada para commitar")
 
 print(f"Post do Dia {current_count} publicado com sucesso.")
