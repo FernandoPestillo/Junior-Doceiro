@@ -41,7 +41,7 @@ else:
     caption = f"Dia {current_count}\n\nComendo um docinho 🍬"
 
 # 2. Criar container de mídia
-media_url = f"https://graph.facebook.com/v24.0/{IG_USER_ID}/media"
+media_url = f"https://graph.facebook.com/v25.0/{IG_USER_ID}/media"
 media_payload = {
     "image_url": image_url,
     "caption": caption,
@@ -59,7 +59,7 @@ creation_id = media_response.json()["id"]
 print(f"Container criado para o Dia {current_count}: {creation_id}")
 
 # 3. Aguardar processamento
-status_url = f"https://graph.facebook.com/v24.0/{creation_id}"
+status_url = f"https://graph.facebook.com/v25.0/{creation_id}"
 status_params = {
     "fields": "status_code",
     "access_token": ACCESS_TOKEN
@@ -81,7 +81,7 @@ else:
     raise TimeoutError("Timeout aguardando a mídia ficar pronta")
 
 # 4. Publicar
-publish_url = f"https://graph.facebook.com/v24.0/{IG_USER_ID}/media_publish"
+publish_url = f"https://graph.facebook.com/v25.0/{IG_USER_ID}/media_publish"
 publish_payload = {
     "creation_id": creation_id,
     "access_token": ACCESS_TOKEN
