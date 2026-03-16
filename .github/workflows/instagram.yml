@@ -31,5 +31,5 @@ jobs:
         env:
           IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
           IG_USER_ID: ${{ secrets.IG_USER_ID }}
-          IMAGE_URL: https://raw.githubusercontent.com/fernandopestillo/Junior-Doceiro/main/assets/1.jpg
+          IMAGE_URL: https://raw.githubusercontent.com/fernandopestillo/Junior-Doceiro/main/assets/1.jpeg
         run: python scripts/post_instagram.py
