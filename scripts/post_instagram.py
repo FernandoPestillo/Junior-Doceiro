@@ -40,12 +40,13 @@ def replace_image_url(base_url: str, new_file: str):
     """Substitui o nome do arquivo mantendo a URL base"""
     return base_url.rsplit("/", 1)[0] + "/" + new_file
 
-def validate_image_url(url: str):
-    r = requests.get(url, timeout=10)
+def assert_valid_image(url: str):
+    r = requests.get(url, allow_redirects=True, timeout=10)
     if r.status_code != 200:
-        raise ValueError(f"Imagem inacessível: {url}")
-    if not r.headers.get("Content-Type", "").startswith("image/"):
-        raise ValueError(f"URL não é imagem válida: {url}")
+        raise RuntimeError(f"Imagem inacessível: {url}")
+    ct = r.headers.get("Content-Type", "")
+    if not ct.startswith("image/"):
+        raise RuntimeError(f"URL não é imagem. Content-Type={ct}")
 
 
 # =============================
@@ -69,7 +70,6 @@ custom_caption = load_custom_caption(current_count)
 
 if special_image:
     image_url = replace_image_url(BASE_IMAGE_URL, special_image)
-    validate_image_url(image_url)
 
     if custom_caption:
         caption = f"Especial dia {current_count}!\n\n{custom_caption}"
@@ -79,14 +79,13 @@ if special_image:
     print(f"⭐ Usando imagem especial: {special_image}")
 else:
     image_url = BASE_IMAGE_URL
-    validate_image_url(image_url)
-    
     caption = f"Dia {current_count}\n\nComendo um docinho 🍬"
     print("📸 Usando imagem padrão")
 
 # =============================
 # 3. CRIAR CONTAINER DE MÍDIA
 # =============================
+assert_valid_image(image_url)
 media_url = f"https://graph.facebook.com/v25.0/{IG_USER_ID}/media"
 media_payload = {
     "image_url": image_url,
