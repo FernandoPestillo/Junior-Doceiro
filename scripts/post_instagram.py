@@ -40,6 +40,13 @@ def replace_image_url(base_url: str, new_file: str):
     """Substitui o nome do arquivo mantendo a URL base"""
     return base_url.rsplit("/", 1)[0] + "/" + new_file
 
+def validate_image_url(url: str):
+    r = requests.get(url, timeout=10)
+    if r.status_code != 200:
+        raise ValueError(f"Imagem inacessível: {url}")
+    if not r.headers.get("Content-Type", "").startswith("image/"):
+        raise ValueError(f"URL não é imagem válida: {url}")
+
 
 # =============================
 # 1. LER CONTADOR
@@ -62,6 +69,7 @@ custom_caption = load_custom_caption(current_count)
 
 if special_image:
     image_url = replace_image_url(BASE_IMAGE_URL, special_image)
+    validate_image_url(image_url)
 
     if custom_caption:
         caption = f"Especial dia {current_count}!\n\n{custom_caption}"
@@ -71,6 +79,8 @@ if special_image:
     print(f"⭐ Usando imagem especial: {special_image}")
 else:
     image_url = BASE_IMAGE_URL
+    validate_image_url(image_url)
+    
     caption = f"Dia {current_count}\n\nComendo um docinho 🍬"
     print("📸 Usando imagem padrão")
 
